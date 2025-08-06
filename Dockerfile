@@ -8,7 +8,7 @@ RUN dotnet build "./Web_Restaurant.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "./Web_Restaurant.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 RUN mkdir -p /app/keys && chmod 700 /app/keys
 VOLUME /app/keys
