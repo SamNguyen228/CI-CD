@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY ["Web_Restaurant.csproj", "."]
-RUN dotnet restore "./Web_Restaurant.csproj"
+RUN dotnet restore "./Web_Restaurant.csproj" 
 COPY . .
 RUN dotnet build "./Web_Restaurant.csproj" -c Release -o /app/build
 

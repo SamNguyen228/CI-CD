@@ -40,88 +40,88 @@
 # ---------------------------- Work with Traefik ----------------------
 
 services:
-  web:
-    image: web_restaurant:latest
+  web:  # Dịch vụ ứng dụng web (ASP.NET Core)
+    image: web_restaurant:latest  # Sử dụng image tên web_restaurant với tag latest
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: .  # Thư mục chứa Dockerfile (hiện tại)
+      dockerfile: Dockerfile  # Tên file Dockerfile được dùng để build
     ports:
-      - "5000:5000"
+      - "5000:5000"  # Mở cổng 5000 trên máy host và ánh xạ tới container
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_ENVIRONMENT=Production  # Thiết lập môi trường là Production
+      - ASPNETCORE_URLS=http://+:5000  # Ứng dụng lắng nghe trên cổng 5000 mọi IP
     networks:
-      - traefik-net
+      - traefik-net  # Kết nối vào mạng tên traefik-net
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=Host(`web.localhost`)"
-      - "traefik.http.services.web.loadbalancer.server.port=5000"
+      - "traefik.enable=true"  # Cho phép traefik định tuyến tới service này
+      - "traefik.http.routers.web.rule=Host(`web.localhost`)"  # Traefik định tuyến khi host là web.localhost
+      - "traefik.http.services.web.loadbalancer.server.port=5000"  # Traefik chuyển tiếp tới cổng 5000 nội bộ
 
-  minio:
-    image: minio/minio:latest
+  minio:  # Dịch vụ lưu trữ đối tượng MinIO (giống S3)
+    image: minio/minio:latest  # Image chính thức của MinIO
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:9000"  # Giao diện S3 API
+      - "9001:9001"  # Giao diện web console
     environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=password
-    command: server /data --console-address ":9001"
+      - MINIO_ROOT_USER=admin  # User đăng nhập mặc định
+      - MINIO_ROOT_PASSWORD=password  # Mật khẩu đăng nhập mặc định
+    command: server /data --console-address ":9001"  # Chạy MinIO, lưu trữ tại /data, console trên cổng 9001
     volumes:
-      - minio-data:/data
+      - minio-data:/data  # Dữ liệu được lưu vào volume tên minio-data
     networks:
-      - traefik-net
+      - traefik-net  # Nằm trong cùng mạng với traefik
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
-      - "traefik.http.services.minio.loadbalancer.server.port=9000"
+      - "traefik.enable=true"  # Cho phép traefik định tuyến
+      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"  # Truy cập qua minio.localhost
+      - "traefik.http.services.minio.loadbalancer.server.port=9000"  # Traefik chuyển tiếp tới cổng 9000
 
-  grafana:
-    image: grafana/grafana:latest
+  grafana:  # Dịch vụ giám sát/visualize dữ liệu (Grafana)
+    image: grafana/grafana:latest  # Image chính thức Grafana
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Cổng giao diện web của Grafana
     environment:
-      - GF_SERVER_ROOT_URL=http://grafana.localhost
+      - GF_SERVER_ROOT_URL=http://grafana.localhost  # URL gốc cho Grafana
     volumes:
-      - grafana-data:/var/lib/grafana
+      - grafana-data:/var/lib/grafana  # Lưu dữ liệu người dùng vào volume grafana-data
     networks:
-      - traefik-net
+      - traefik-net  # Cùng mạng với traefik
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
-      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.enable=true"  # Cho phép routing qua traefik
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"  # Truy cập qua grafana.localhost
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"  # Traefik chuyển tiếp đến cổng 3000
 
-  prometheus:
-    image: prom/prometheus:latest
+  prometheus:  # Dịch vụ thu thập metrics (Prometheus)
+    image: prom/prometheus:latest  # Image Prometheus chính thức
     ports:
-      - "9090:9090"
+      - "9090:9090"  # Giao diện web của Prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # Mount file cấu hình Prometheus từ local
     networks:
-      - traefik-net
+      - traefik-net  # Cùng mạng với traefik
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
-      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "traefik.enable=true"  # Cho phép routing qua traefik
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"  # Truy cập qua prometheus.localhost
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"  # Traefik chuyển tiếp tới cổng 9090
 
-  traefik:
-    image: traefik:v2.11
+  traefik:  # Reverse proxy và load balancer Traefik
+    image: traefik:v2.11  # Image chính thức của Traefik phiên bản 2.11
     ports:
-      - "80:80"
-      - "8080:8080"
+      - "80:80"  # Mở cổng 80 cho HTTP traffic
+      - "8080:8080"  # Giao diện dashboard Traefik (dành cho admin)
     command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
+      - "--api.insecure=true"  # Cho phép truy cập dashboard mà không cần auth
+      - "--providers.docker=true"  # Sử dụng Docker làm provider để tự động phát hiện dịch vụ
+      - "--providers.docker.exposedbydefault=false"  # Mặc định không expose service, cần label mới expose
+      - "--entrypoints.web.address=:80"  # Cấu hình entrypoint tên `web` lắng nghe cổng 80
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Cho phép Traefik đọc thông tin container Docker
     networks:
-      - traefik-net
+      - traefik-net  # Cùng mạng với các container khác
 
 networks:
   traefik-net:
-    driver: bridge
+    driver: bridge  # Sử dụng driver mạng bridge (mặc định của Docker)
 
 volumes:
-  minio-data:
-  grafana-data:
+  minio-data:  # Volume dùng để lưu trữ dữ liệu MinIO
+  grafana-data:  # Volume dùng để lưu dữ liệu của Grafana
